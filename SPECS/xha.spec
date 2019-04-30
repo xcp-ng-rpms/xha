@@ -4,8 +4,12 @@ Version: 10.0.1
 Release: 1%{?dist}
 License: GPLv2
 URL:     https://github.com/xenserver/xha
-Source0: https://code.citrite.net/rest/archive/latest/projects/XSU/repos/%{name}/archive?at=v%{version}&format=tar.gz#/%{name}-%{version}.tar.gz
-Provides: gitsha(https://code.citrite.net/rest/archive/latest/projects/XSU/repos/xha/archive?at=v10.0.1&format=tar.gz#/xha-10.0.1.tar.gz) = edb05e82c3de59af3ea664f9b928840c217b6fa1
+
+Source0: https://code.citrite.net/rest/archive/latest/projects/XSU/repos/xha/archive?at=v10.0.1&prefix=xha-10.0.1&format=tar.gz#/xha-10.0.1.tar.gz
+
+
+Provides: gitsha(https://code.citrite.net/rest/archive/latest/projects/XSU/repos/xha/archive?at=v10.0.1&prefix=xha-10.0.1&format=tar.gz#/xha-10.0.1.tar.gz) = edb05e82c3de59af3ea664f9b928840c217b6fa1
+
 
 BuildRequires: gcc
 BuildRequires: libxml2-devel
@@ -17,7 +21,7 @@ Requires: portreserve
 This package contains the HA heartbeating daemon used for XenServer's HA feature
 
 %prep
-%autosetup -p1 -c
+%autosetup -p1
 
 %build
 %{?cov_wrap} make
