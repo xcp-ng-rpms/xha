@@ -1,14 +1,14 @@
 Summary: xha - XenServer proprietary HA daemon
 Name:    xha
-Version: 10.0.1
+Version: 10.1.0
 Release: 1%{?dist}
 License: GPLv2
 URL:     https://github.com/xenserver/xha
 
-Source0: https://code.citrite.net/rest/archive/latest/projects/XSU/repos/xha/archive?at=v10.0.1&prefix=xha-10.0.1&format=tar.gz#/xha-10.0.1.tar.gz
+Source0: https://code.citrite.net/rest/archive/latest/projects/XSU/repos/xha/archive?at=v10.1.0&prefix=xha-10.1.0&format=tar.gz#/xha-10.1.0.tar.gz
 
 
-Provides: gitsha(https://code.citrite.net/rest/archive/latest/projects/XSU/repos/xha/archive?at=v10.0.1&prefix=xha-10.0.1&format=tar.gz#/xha-10.0.1.tar.gz) = edb05e82c3de59af3ea664f9b928840c217b6fa1
+Provides: gitsha(https://code.citrite.net/rest/archive/latest/projects/XSU/repos/xha/archive?at=v10.1.0&prefix=xha-10.1.0&format=tar.gz#/xha-10.1.0.tar.gz) = 20b7e5244f9e25b199ea8e3ef5b935f4e9b4247d
 
 
 BuildRequires: gcc
@@ -52,6 +52,16 @@ DESTDIR=$RPM_BUILD_ROOT make install
 %{_libexecdir}/xapi/cluster-stack/xhad/xhad
 
 %changelog
+* Mon Jul 01 2019 Christian Lindig <christian.lindig@citrix.com> - 10.1.0-1
+- XSI-301: Print errno when watchdog hypercall fails.
+- XSI-301: remove duplicated unlock_pages lines
+- CA-315962 cleanupwatchdog: Use hypercall's errno
+- CA-315962 cleanupwatchdog: exit when encountering errors on hypercalls
+- CA-315962 cleanupwatchdog: restrict hypercalls to disable watchdogs
+- CA-315962 cleanupwatchdog: simplify hypercall call handling
+- CA-315962 cleanupwatchdog: Allow resetting watchdog slots without an HA file
+- CA-315962: Flush watchdog slots on HA startup
+
 * Tue Nov 8 2016 Euan Harris <euan.harris@citrix.com> - 10.0.1-1
 - Include Git commit metadata in source archive
 
