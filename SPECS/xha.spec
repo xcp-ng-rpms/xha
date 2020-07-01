@@ -1,7 +1,7 @@
 Summary: xha - XenServer proprietary HA daemon
 Name:    xha
 Version: 10.1.0
-Release: 1%{?dist}
+Release: 2%{?dist}
 License: GPLv2
 URL:     https://github.com/xenserver/xha
 
@@ -14,6 +14,7 @@ Provides: gitsha(https://code.citrite.net/rest/archive/latest/projects/XSU/repos
 BuildRequires: gcc
 BuildRequires: libxml2-devel
 BuildRequires: xen-devel
+%{?_cov_buildrequires}
 
 Requires: portreserve
 
@@ -22,12 +23,14 @@ This package contains the HA heartbeating daemon used for XenServer's HA feature
 
 %prep
 %autosetup -p1
+%{?_cov_prepare}
 
 %build
-%{?cov_wrap} make
+%{?_cov_wrap} make
 
 %install
 DESTDIR=$RPM_BUILD_ROOT make install
+%{?_cov_install}
 
 %files
 %{_sysconfdir}/logrotate.d/xha
@@ -51,7 +54,12 @@ DESTDIR=$RPM_BUILD_ROOT make install
 %{_libexecdir}/xapi/cluster-stack/xhad/writestatefile
 %{_libexecdir}/xapi/cluster-stack/xhad/xhad
 
+%{?_cov_results_package}
+
 %changelog
+* Fri Feb 21 2020 Steven Woods <steven.woods@citrix.com> - 10.1.0-2
+- CP33120: Add Coverity build macros
+
 * Mon Jul 01 2019 Christian Lindig <christian.lindig@citrix.com> - 10.1.0-1
 - XSI-301: Print errno when watchdog hypercall fails.
 - XSI-301: remove duplicated unlock_pages lines
