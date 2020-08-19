@@ -1,7 +1,7 @@
 Summary: xha - XenServer proprietary HA daemon
 Name:    xha
 Version: 10.1.0
-Release: 1%{?dist}
+Release: 1.0.linstor.1%{?dist}
 License: GPLv2
 URL:     https://github.com/xenserver/xha
 
@@ -16,6 +16,9 @@ BuildRequires: libxml2-devel
 BuildRequires: xen-devel
 
 Requires: portreserve
+
+# XCP-ng patches
+Patch1000: xha-10.1.0-drbd-support.XCP-ng.patch
 
 %description
 This package contains the HA heartbeating daemon used for XenServer's HA feature
@@ -52,6 +55,9 @@ DESTDIR=$RPM_BUILD_ROOT make install
 %{_libexecdir}/xapi/cluster-stack/xhad/xhad
 
 %changelog
+* Wed Aug 19 2020 Ronan Abhamon <ronan.abhamon@vates.fr> - 10.1.0-1.0.linstor.1
+- Add xha-10.1.0-drbd-support.XCP-ng.patch patch to support DRBD devices
+
 * Mon Jul 01 2019 Christian Lindig <christian.lindig@citrix.com> - 10.1.0-1
 - XSI-301: Print errno when watchdog hypercall fails.
 - XSI-301: remove duplicated unlock_pages lines
