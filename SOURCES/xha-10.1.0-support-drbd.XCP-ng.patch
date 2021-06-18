@@ -1,20 +1,20 @@
-From f7320d9e825a1b4d67d6ba12f3c592f478d16e63 Mon Sep 17 00:00:00 2001
+From b7e1327d192e9087dc12c3ee08249f9fd5c1b5e7 Mon Sep 17 00:00:00 2001
 From: Ronan Abhamon <ronan.abhamon@vates.fr>
 Date: Thu, 6 Aug 2020 16:53:57 +0200
-Subject: [PATCH] feat(statefile): supports DRBD (close state file descriptor
- after each write/read)
+Subject: [PATCH 1/1] feat(statefile): supports DRBD (close state file
+ descriptor after each write/read)
 
 A DRBD device can only be used by one process at the same time, so only one file descriptor can be opened.
 Unfortunately xhad opens one descriptor per host on the heartbeat VDI. In the case of LINSTOR this mechanism
 does not work with DRBD VDIs, the solution in this case is to open a descriptor only when a read or write is executed
 (the descriptor is closed after the request). If another host tries to do the same thing, we put the daemon to sleep.
 ---
- daemon/statefile.c | 52 +++++++++++++++++++++++++++++++++++++++-------
- lib/statefileio.c  | 35 ++++++++++++++++++++++++++++++-
- 2 files changed, 79 insertions(+), 8 deletions(-)
+ daemon/statefile.c | 88 ++++++++++++++++++++++++++++++++++++++++++----
+ lib/statefileio.c  | 66 ++++++++++++++++++++++++++++++++--
+ 2 files changed, 145 insertions(+), 9 deletions(-)
 
 diff --git a/daemon/statefile.c b/daemon/statefile.c
-index af819a0..2ebac4b 100755
+index af819a0..697e785 100755
 --- a/daemon/statefile.c
 +++ b/daemon/statefile.c
 @@ -73,6 +73,9 @@
@@ -27,7 +27,16 @@ index af819a0..2ebac4b 100755
  
  //
  //
-@@ -122,8 +125,11 @@ static struct {
+@@ -90,6 +93,8 @@
+ #define SLEEP_INTERVAL  500     //  500ms
+ #define ACCELERATED_ACCESS_INTERVAL (SLEEP_INTERVAL - 100)
+ 
++#define LOG_DRBD_ACCESS 0
++
+ //  State-File buffer
+ 
+ static STATE_FILE StateFile __attribute__ ((aligned (IOALIGN)));
+@@ -122,8 +127,11 @@ static struct {
  //  Internal data for this module
  //
  
@@ -39,27 +48,61 @@ index af819a0..2ebac4b 100755
      MTC_BOOLEAN         terminate;
      MTC_U32             sequence;
      pthread_t sf_thread;
-@@ -152,6 +158,19 @@ static struct {
+@@ -152,6 +160,53 @@ static struct {
      } readlatency, writelatency;
  } sfvar = { 0 };
  
++#if LOG_DRBD_ACCESS
++  #define log_drbd_access(...) log_internal(__VA_ARGS__)
++#else
++  #define log_drbd_access(...)
++#endif // if LOG_DRBD_ACCESS
++
 +static inline int open_desc()
 +{
-+    return sfvar.flags & SFVAR_FLAG_DRBD ? sf_open(_sf_path) : sfvar.sfdesc;
++    if (!(sfvar.flags & SFVAR_FLAG_DRBD))
++    {
++        return sfvar.sfdesc;
++    }
++
++    log_drbd_access(MTC_LOG_DEBUG, "SF: trying to open the DRBD State-File %s...\n", _sf_path);
++
++    const int sfdesc = sf_open(_sf_path);
++    if (sfdesc < 0)
++    {
++        log_internal(MTC_LOG_ERR,
++                     "SF: failed to open the DRBD State-File %s. (sys %d)\n", _sf_path, errno);
++    }
++    else
++    {
++        log_drbd_access(MTC_LOG_DEBUG, "SF: open the DRBD State-File %s (fd %d).\n", _sf_path, sfdesc);
++    }
++    return sfdesc;
 +}
 +
 +static inline void close_desc(int sfdesc)
 +{
-+    if (sfvar.flags & SFVAR_FLAG_DRBD)
++    if (!(sfvar.flags & SFVAR_FLAG_DRBD))
 +    {
-+        sf_close(sfdesc);
++        return;
++    }
++
++    const int ret = sf_close(sfdesc);
++    if (ret < 0)
++    {
++        log_internal(MTC_LOG_ERR,
++                     "SF: failed to close the DRBD State-File %s. (sys %d)\n", _sf_path, errno);
++    }
++    else
++    {
++        log_drbd_access(MTC_LOG_DEBUG, "SF: close the DRBD State-File %s (fd %d).\n", _sf_path, sfdesc);
 +    }
 +}
 +
  //  lock
  #define sf_lock()   ((void)pthread_spin_lock(&sfvar.lock))
  #define sf_unlock() ((void)pthread_spin_unlock(&sfvar.lock))
-@@ -303,6 +322,7 @@ sf_initialize0()
+@@ -303,6 +358,7 @@ sf_initialize0()
      //  Initialize sfvar
  
      sfvar.sfdesc = -1,
@@ -67,7 +110,7 @@ index af819a0..2ebac4b 100755
      sfvar.watchdog = INVALID_WATCHDOG_HANDLE_VALUE,
      sfvar.terminate = FALSE,
  
-@@ -407,15 +427,25 @@ sf_initialize0()
+@@ -407,15 +463,25 @@ sf_initialize0()
  
      //  Open the State-File
  
@@ -96,7 +139,7 @@ index af819a0..2ebac4b 100755
      return MTC_SUCCESS;
  
  error:
-@@ -587,7 +617,9 @@ sfthread(
+@@ -587,7 +653,9 @@ sfthread(
              case    MTC_ERROR_SF_PENDING_WRITE:
                  if ((status = FIST_global_write()) == MTC_SUCCESS)
                  {
@@ -107,7 +150,7 @@ index af819a0..2ebac4b 100755
                  }
  
                  if (status != MTC_SUCCESS && print_status != PSTATUS_ERROR)
-@@ -660,7 +692,9 @@ readsf()
+@@ -660,7 +728,9 @@ readsf()
          {
              if ((iostatus.global_section = FIST_global_read()) == MTC_SUCCESS)
              {
@@ -118,7 +161,7 @@ index af819a0..2ebac4b 100755
              }
          }
  
-@@ -670,8 +704,10 @@ readsf()
+@@ -670,8 +740,10 @@ readsf()
              {
                  if ((iostatus.host_section[host_index] = FIST_hostspecific_read()) == MTC_SUCCESS)
                  {
@@ -130,7 +173,7 @@ index af819a0..2ebac4b 100755
                  }
  
                  if (iostatus.host_section[host_index] == MTC_SUCCESS)
-@@ -978,7 +1014,9 @@ write_hostspecific()
+@@ -978,7 +1050,9 @@ write_hostspecific()
  
      if ((status = FIST_hostspecific_write()) == MTC_SUCCESS)
      {
@@ -142,20 +185,20 @@ index af819a0..2ebac4b 100755
  
      if (status != MTC_SUCCESS)
 diff --git a/lib/statefileio.c b/lib/statefileio.c
-index a3322bc..38c2d34 100755
+index a3322bc..7360f56 100755
 --- a/lib/statefileio.c
 +++ b/lib/statefileio.c
 @@ -87,6 +87,9 @@
  
  extern STATE_FILE StateFile;
  
-+#define OPEN_ATTEMPTS 10
-+#define OPEN_SLEEP_INTERVAL 1000
++#define OPEN_ATTEMPTS 100
++#define OPEN_SLEEP_INTERVAL 100
 +
  //
  //
  //  F U N C T I O N   P R O T O T Y P E S
-@@ -106,11 +109,41 @@ sf_FIST_delay_on_write();
+@@ -106,18 +109,67 @@ sf_FIST_delay_on_write();
  //
  
  
@@ -168,9 +211,17 @@ index a3322bc..38c2d34 100755
 +    struct stat stats;
 +    if (stat(path, &stats) == -1)
 +    {
-+        return -1;
++        log_internal(MTC_LOG_ERR, "SF: failed to execute stat (sys %d).\n", errno);
++        return 0;
 +    }
 +    return S_ISBLK(stats.st_mode) && major(stats.st_rdev) == drbd_major;
++}
++
++static int
++retry_open(
++  int is_drbd)
++{
++  return (errno == EROFS && is_drbd) || errno == EAGAIN;
 +}
 +
  extern int
@@ -179,12 +230,21 @@ index a3322bc..38c2d34 100755
  {
 -    return open(path, (O_RDWR | O_DIRECT));
 +    int fd = open(path, (O_RDWR | O_DIRECT));
-+    if (fd < 0 && errno == EROFS && is_drbd_device(path))
++    if (fd >= 0)
++    {
++      return fd;
++    }
++
++    const int is_drbd = is_drbd_device(path);
++    if (retry_open(is_drbd))
 +    {
 +        int attempt;
 +        for (attempt = 0; attempt < OPEN_ATTEMPTS; ++attempt)
 +        {
-+            if ((fd = open(path, (O_RDWR | O_DIRECT)) < 0) && errno == EROFS)
++            log_internal(MTC_LOG_WARNING, "SF: failed to open the DRBD State-File %s (sys %d)... Retry: %d\n", path, errno, attempt);
++
++            fd = open(path, (O_RDWR | O_DIRECT));
++            if (fd < 0 && retry_open(is_drbd))
 +            {
 +                sf_sleep(OPEN_SLEEP_INTERVAL);
 +            }
@@ -198,6 +258,54 @@ index a3322bc..38c2d34 100755
  }
  
  extern int
+ sf_close(
+     int desc)
+ {
+-    return close(desc);
++    if (desc >= 0)
++        return close(desc);
++    return 0;
+ }
+ 
+ extern MTC_STATUS
+@@ -134,6 +186,9 @@ sf_read(
+ 
+     if (lseek(desc, offset, SEEK_SET) < 0)
+     {
++        log_internal(MTC_LOG_ERR,
++                     "SF: failed to seek (off=%jd) in State-File %s (fd %d) during read. (sys %d)\n",
++                     (intmax_t)offset, _sf_path, desc, errno);
+         return MTC_ERROR_SF_IO_ERROR;
+     }
+ 
+@@ -147,6 +202,8 @@ sf_read(
+         n = read(desc, buffer, length);
+         if (n < 0)
+         {
++            log_internal(MTC_LOG_ERR,
++                         "SF: failed to read in State-File %s (fd %d). (sys %d)\n", _sf_path, desc, errno);
+             return MTC_ERROR_SF_IO_ERROR;
+         }
+         length -= n;
+@@ -173,6 +230,9 @@ sf_write(
+ 
+     if (lseek(desc, offset, SEEK_SET) < 0)
+     {
++        log_internal(MTC_LOG_ERR,
++                     "SF: failed to seek (off=%jd) in State-File %s (fd %d) during write. (sys %d)\n",
++                     (intmax_t)offset, _sf_path, desc, errno);
+         return MTC_ERROR_SF_IO_ERROR;
+     }
+ 
+@@ -184,6 +244,8 @@ sf_write(
+ 
+     if (write(desc, buffer, length) < 0)
+     {
++        log_internal(MTC_LOG_ERR,
++                     "SF: failed to write in State-File %s (fd %d). (sys %d)\n", _sf_path, desc, errno);
+         return MTC_ERROR_SF_IO_ERROR;
+     }
+ 
 -- 
-2.25.1
+2.32.0
 

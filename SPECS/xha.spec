@@ -1,7 +1,7 @@
 Summary: xha - XenServer proprietary HA daemon
 Name:    xha
 Version: 10.1.0
-Release: 2.1%{?dist}
+Release: 2.2%{?dist}
 License: GPLv2
 URL:     https://github.com/xenserver/xha
 
@@ -60,6 +60,9 @@ DESTDIR=$RPM_BUILD_ROOT make install
 %{?_cov_results_package}
 
 %changelog
+* Tue Mar 16 2021 Ronan Abhamon <ronan.abhamon@vates.fr> - 10.1.0-2.2
+- Update xha-10.1.0-support-drbd.XCP-ng.patch patch
+
 * Wed Aug 19 2020 Ronan Abhamon <ronan.abhamon@vates.fr> - 10.1.0-2.1
 - Add xha-10.1.0-support-drbd.XCP-ng.patch patch to support DRBD devices
 
