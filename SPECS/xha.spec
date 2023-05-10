@@ -3,7 +3,7 @@
 Summary: xha - XenServer proprietary HA daemon
 Name:    xha
 Version: 10.3.0
-Release: 3.1%{?xsrel}%{?dist}
+Release: 3.2%{?xsrel}%{?dist}
 License: GPLv2
 URL:     https://github.com/xenserver/xha
 Source0: xha-10.3.0.tar.gz
@@ -17,6 +17,7 @@ Requires: portreserve
 
 # XCP-ng patches
 Patch1000: xha-10.1.0-support-drbd.XCP-ng.patch
+Patch1001: xha-10.3.0-support-ipv6.XCP-ng.patch
 
 %description
 This package contains the HA heartbeating daemon used for XenServer's HA feature
@@ -57,6 +58,9 @@ DESTDIR=$RPM_BUILD_ROOT make install
 %{?_cov_results_package}
 
 %changelog
+* Wed May 10 2023 Benjamin Reis <benjamin.reis@vates.fr> - 10.3.0-3.2
+- Add xha-10.3.0-support-ipv6.XCP-ng.patch
+
 * Tue Aug 30 2022 Samuel Verschelde <stormi-xcp@ylix.fr> - 10.3.0-3.1
 - Rebase on CH 8.3 Preview
 - Re-add xha-10.1.0-support-drbd.XCP-ng.patch patch to support DRBD devices
