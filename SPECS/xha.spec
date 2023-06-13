@@ -1,7 +1,7 @@
 Summary: xha - XenServer proprietary HA daemon
 Name:    xha
 Version: 10.1.0
-Release: 2.2.0.linstor.2%{?dist}
+Release: 2.2.0.linstor.3%{?dist}
 License: GPLv2
 URL:     https://github.com/xenserver/xha
 
@@ -19,8 +19,7 @@ BuildRequires: xen-devel
 Requires: portreserve
 
 # XCP-ng patches
-Patch1000: 0001-feat-statefile-supports-DRBD-close-state-file-descri.patch
-Patch1001: 0002-feat-statefile-supports-NBD.patch
+Patch1001: 0001-feat-statefile-supports-NBD-using-O_SYNC-flag.patch
 
 %description
 This package contains the HA heartbeating daemon used for XenServer's HA feature
@@ -61,14 +60,8 @@ DESTDIR=$RPM_BUILD_ROOT make install
 %{?_cov_results_package}
 
 %changelog
-* Fri May 13 2022 Ronan Abhamon <ronan.abhamon@vates.fr> - 10.1.0-2.2.0.linstor.2
-- Add 0002-feat-statefile-supports-NBD.patch
-
-* Tue Mar 16 2021 Ronan Abhamon <ronan.abhamon@vates.fr> - 10.1.0-2.2.0.linstor.1
-- Update xha-10.1.0-support-drbd.XCP-ng.patch patch
-
-* Wed Aug 19 2020 Ronan Abhamon <ronan.abhamon@vates.fr> - 10.1.0-2.1
-- Add xha-10.1.0-support-drbd.XCP-ng.patch patch to support DRBD devices
+* Tue Jun 13 2023 Ronan Abhamon <ronan.abhamon@vates.fr> - 10.1.0-2.2.0.linstor.3
+- Add 0001-feat-statefile-supports-NBD-using-O_SYNC-flag.patch
 
 * Fri Feb 21 2020 Steven Woods <steven.woods@citrix.com> - 10.1.0-2
 - CP33120: Add Coverity build macros

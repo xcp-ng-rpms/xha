@@ -1,0 +1,64 @@
+From f8de38abe9c8d5abfdc708b9e0a900af4a89ab89 Mon Sep 17 00:00:00 2001
+From: Ronan Abhamon <ronan.abhamon@vates.fr>
+Date: Thu, 27 Jan 2022 19:43:07 +0100
+Subject: [PATCH] feat(statefile): supports NBD using O_SYNC flag
+
+Use O_DIRECT + O_SYNC with NBDs because:
+  - O_DIRECT is required to always have valid data (no cache on top of backend device).
+  - The read and write delay before flush can be several tens of seconds without O_SYNC, this is not acceptable.
+
+Signed-off-by: Ronan Abhamon <ronan.abhamon@vates.fr>
+---
+ lib/statefileio.c | 32 +++++++++++++++++++++++++++++++-
+ 1 file changed, 31 insertions(+), 1 deletion(-)
+
+diff --git a/lib/statefileio.c b/lib/statefileio.c
+index a3322bc..6b467b3 100755
+--- a/lib/statefileio.c
++++ b/lib/statefileio.c
+@@ -106,11 +106,41 @@ sf_FIST_delay_on_write();
+ //
+ 
+ 
++enum {
++    DEVICE_TYPE_NORMAL = 0,
++    DEVICE_TYPE_NBD = 1
++};
++
++static int
++get_device_type(
++      const char *path)
++{
++    static const int nbd_major = 43;
++
++    struct stat stats;
++    if (stat(path, &stats) == -1)
++    {
++        log_internal(MTC_LOG_ERR, "SF: failed to execute stat (sys %d).\n", errno);
++        return DEVICE_TYPE_NORMAL;
++    }
++    if (S_ISBLK(stats.st_mode) && major(stats.st_rdev) == nbd_major) {
++        return DEVICE_TYPE_NBD;
++    }
++    return DEVICE_TYPE_NORMAL;
++}
++
+ extern int
+ sf_open(
+     char *path)
+ {
+-    return open(path, (O_RDWR | O_DIRECT));
++    const int device_type = get_device_type(path);
++    const int flags = O_RDWR | O_DIRECT | (device_type == DEVICE_TYPE_NBD ? O_SYNC : 0);
++
++    int fd;
++    do {
++        fd = open(path, flags);
++    } while (fd < 0 && (errno == EAGAIN || errno == EINTR));
++    return fd;
+ }
+ 
+ extern int
+-- 
+2.41.0
+
