@@ -1,12 +1,12 @@
-%global package_speccommit a727fafd6dcaa360a78f7bec2499f4e168718dce
-%global package_srccommit v10.3.0
+%global package_speccommit be441062cdbdfb888ee2936129ee0f154b1d1a0f
+%global package_srccommit v10.5.0
 Summary: xha - XenServer proprietary HA daemon
 Name:    xha
-Version: 10.3.0
-Release: 3.2%{?xsrel}%{?dist}
+Version: 10.5.0
+Release: 1.1%{?xsrel}%{?dist}
 License: GPLv2
 URL:     https://github.com/xenserver/xha
-Source0: xha-10.3.0.tar.gz
+Source0: xha-10.5.0.tar.gz
 
 BuildRequires: gcc
 BuildRequires: libxml2-devel
@@ -17,7 +17,6 @@ Requires: portreserve
 
 # XCP-ng patches
 Patch1000: xha-10.1.0-support-drbd.XCP-ng.patch
-Patch1001: xha-10.3.0-support-ipv6.XCP-ng.patch
 
 %description
 This package contains the HA heartbeating daemon used for XenServer's HA feature
@@ -58,6 +57,16 @@ DESTDIR=$RPM_BUILD_ROOT make install
 %{?_cov_results_package}
 
 %changelog
+* Fri Sep 15 2023 Samuel Verschelde <stormi-xcp@ylix.fr> - 10.5.0-1.1
+- Update to 10.5.0-1
+- Drop xha-10.3.0-support-ipv6.XCP-ng.patch, merged upstream
+- *** Upstream changelog ***
+- * Wed May 24 2023 Pau Ruiz Safont <pau.ruizsafont@cloud.com> - 10.5.0-1
+- - lib: ensure the correct maximum amount of hosts
+- * Tue Apr 18 2023 Pau Ruiz Safont <pau.ruizsafont@cloud.com> - 10.4.0-1
+- - CP-41049: Safely remove /proc/xen from dom0
+- - feat(heartbeat): support IPv6
+
 * Wed May 10 2023 Benjamin Reis <benjamin.reis@vates.fr> - 10.3.0-3.2
 - Add xha-10.3.0-support-ipv6.XCP-ng.patch
 
