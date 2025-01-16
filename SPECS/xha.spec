@@ -1,15 +1,12 @@
+%global package_speccommit f7bea5d97a5d59bee0a3ca6483a7efa0c7115842
+%global package_srccommit v10.3.1
 Summary: xha - XenServer proprietary HA daemon
 Name:    xha
-Version: 10.1.0
-Release: 2%{?dist}
+Version: 10.3.1
+Release: 3%{?xsrel}%{?dist}
 License: GPLv2
 URL:     https://github.com/xenserver/xha
-
-Source0: https://code.citrite.net/rest/archive/latest/projects/XSU/repos/xha/archive?at=v10.1.0&prefix=xha-10.1.0&format=tar.gz#/xha-10.1.0.tar.gz
-
-
-Provides: gitsha(https://code.citrite.net/rest/archive/latest/projects/XSU/repos/xha/archive?at=v10.1.0&prefix=xha-10.1.0&format=tar.gz#/xha-10.1.0.tar.gz) = 20b7e5244f9e25b199ea8e3ef5b935f4e9b4247d
-
+Source0: xha-10.3.1.tar.gz
 
 BuildRequires: libxml2-devel
 BuildRequires: xen-devel
@@ -56,6 +53,27 @@ DESTDIR=$RPM_BUILD_ROOT make install
 %{?_cov_results_package}
 
 %changelog
+* Mon Dec 16 2024 Christian Lindig <christian.lindig@citrix.com> - 10.3.1-3
+- Bump release and rebuild
+
+* Fri Dec 13 2024 Christian Lindig <christian.lindig@cloud.com> - 10.3.1-2
+- Bump release and rebuild
+
+* Fri Dec 13 2024 Christian Lindig <christian.lindig@cloud.com> - 10.3.1-1
+- lib: ensure the correct maximum amount of hosts
+- CA-403139: Set scheduler policy and priority thread
+- CA-403683: Configurable syslog printing
+
+* Thu Dec 12 2024 Christian Lindig <christian.lindig@cloud.com> - 10.3.0-2
+- Bump release and rebuild
+
+* Thu Jul 22 2021 Rachel Yan <Rachel.Yan@citrix.com> - 10.3.0-1
+- CA-322009: Fixed warning from set scheduler
+
+* Tue Feb 16 2021 Rob Hoes <rob.hoes@citrix.com> - 10.2.0-1
+- CA-351513: fix gcc's -fanalyzer warnings
+- maintenance: ignore generated files
+
 * Fri Feb 21 2020 Steven Woods <steven.woods@citrix.com> - 10.1.0-2
 - CP33120: Add Coverity build macros
 
