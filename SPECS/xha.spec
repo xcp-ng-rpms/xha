@@ -1,12 +1,12 @@
-%global package_speccommit be441062cdbdfb888ee2936129ee0f154b1d1a0f
-%global package_srccommit v10.5.0
+%global package_speccommit 7155dda3f5947aa7277b3e9362e3d5b9bddacd47
+%global package_srccommit v25.0.0
 Summary: xha - XenServer proprietary HA daemon
 Name:    xha
-Version: 10.5.0
+Version: 25.0.0
 Release: 1.1%{?xsrel}%{?dist}
 License: GPLv2
 URL:     https://github.com/xenserver/xha
-Source0: xha-10.5.0.tar.gz
+Source0: xha-25.0.0.tar.gz
 
 BuildRequires: gcc
 BuildRequires: libxml2-devel
@@ -57,6 +57,13 @@ DESTDIR=$RPM_BUILD_ROOT make install
 %{?_cov_results_package}
 
 %changelog
+* Mon Mar 31 2025 Samuel Verschelde <stormi-xcp@ylix.fr> - 25.0.0-1.1
+- Update to 25.0.0-1
+- *** Upstream changelog ***
+  * Fri Jan 10 2025 Rob Hoes <rob.hoes@citrix.com> - 25.0.0-1
+  - CA-403139: Set scheduler policy and priority thread
+  - CA-403683: Configurable syslog printing
+
 * Fri Sep 15 2023 Samuel Verschelde <stormi-xcp@ylix.fr> - 10.5.0-1.1
 - Update to 10.5.0-1
 - Drop xha-10.3.0-support-ipv6.XCP-ng.patch, merged upstream
