@@ -1,12 +1,12 @@
-%global package_speccommit 7155dda3f5947aa7277b3e9362e3d5b9bddacd47
-%global package_srccommit v25.0.0
+%global package_speccommit 12ac3bfdaad06b8db83feba5ef345b5b252ade91
+%global package_srccommit v25.1.0
 Summary: xha - XenServer proprietary HA daemon
 Name:    xha
-Version: 25.0.0
+Version: 25.1.0
 Release: 1%{?xsrel}%{?dist}
 License: GPLv2
 URL:     https://github.com/xenserver/xha
-Source0: xha-25.0.0.tar.gz
+Source0: xha-25.1.0.tar.gz
 
 BuildRequires: libxml2-devel
 BuildRequires: xen-devel
@@ -53,6 +53,16 @@ DESTDIR=$RPM_BUILD_ROOT make install
 %{?_cov_results_package}
 
 %changelog
+* Thu Mar 06 2025 Gerald Elder-Vass <gerald.elder-vass@cloud.com> - 25.1.0-1
+- CA-407106: Fix various static analyzer warnings
+- CA-404658: Separate heartbeat send and receive threads
+- CA-407313: Replace HA spinlock with rwlock
+- CA-407256: Call to xha-lc is a no-op
+- CA-406953: Fix pointer truncation in hypercall arguments and undefined behaviour
+
+* Thu Jan 30 2025 Alex Brett <alex.brett@cloud.com> - 25.0.1-1
+- CA-405454: Fix xha when using cgroup v2
+
 * Fri Jan 10 2025 Rob Hoes <rob.hoes@citrix.com> - 25.0.0-1
 - CA-403139: Set scheduler policy and priority thread
 - CA-403683: Configurable syslog printing
