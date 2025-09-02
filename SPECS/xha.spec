@@ -16,7 +16,8 @@ BuildRequires: xen-devel
 Requires: portreserve
 
 # XCP-ng patches
-TODO
+Patch1001: 0001-Support-DRBD-path.patch
+Patch1002: 0002-Support-NBD-path-1.patch
 
 %description
 This package contains the HA heartbeating daemon used for XenServer's HA feature
@@ -59,7 +60,7 @@ DESTDIR=$RPM_BUILD_ROOT make install
 %changelog
 * Tue Sep 02 2025 Ronan Abhamon <ronan.abhamon@vates.tech> - 25.1.0-1.1
 - Update to 25.1.0-1
-- TODO: Update XCP-ng patches
+- Sync patches and robustify access to NBD paths using O_SYNC
 - *** Upstream changelog ***
   * Thu Mar 06 2025 Gerald Elder-Vass <gerald.elder-vass@cloud.com> - 25.1.0-1
   - CA-407106: Fix various static analyzer warnings
