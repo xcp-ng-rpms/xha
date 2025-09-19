@@ -1,20 +1,21 @@
-From f7320d9e825a1b4d67d6ba12f3c592f478d16e63 Mon Sep 17 00:00:00 2001
-From: Ronan Abhamon <ronan.abhamon@vates.fr>
-Date: Thu, 6 Aug 2020 16:53:57 +0200
-Subject: [PATCH] feat(statefile): supports DRBD (close state file descriptor
- after each write/read)
+From 33fc7c13528382caec12120571d3bdee9a72f185 Mon Sep 17 00:00:00 2001
+From: Ronan Abhamon <ronan.abhamon@vates.tech>
+Date: Tue, 2 Sep 2025 16:06:21 +0200
+Subject: [PATCH] Support DRBD path
 
 A DRBD device can only be used by one process at the same time, so only one file descriptor can be opened.
 Unfortunately xhad opens one descriptor per host on the heartbeat VDI. In the case of LINSTOR this mechanism
 does not work with DRBD VDIs, the solution in this case is to open a descriptor only when a read or write is executed
 (the descriptor is closed after the request). If another host tries to do the same thing, we put the daemon to sleep.
+
+Signed-off-by: Ronan Abhamon <ronan.abhamon@vates.tech>
 ---
  daemon/statefile.c | 52 +++++++++++++++++++++++++++++++++++++++-------
  lib/statefileio.c  | 35 ++++++++++++++++++++++++++++++-
  2 files changed, 79 insertions(+), 8 deletions(-)
 
 diff --git a/daemon/statefile.c b/daemon/statefile.c
-index af819a0..2ebac4b 100755
+index 5f01f6a..284408b 100755
 --- a/daemon/statefile.c
 +++ b/daemon/statefile.c
 @@ -73,6 +73,9 @@
@@ -96,7 +97,7 @@ index af819a0..2ebac4b 100755
      return MTC_SUCCESS;
  
  error:
-@@ -587,7 +617,9 @@ sfthread(
+@@ -588,7 +618,9 @@ sfthread(
              case    MTC_ERROR_SF_PENDING_WRITE:
                  if ((status = FIST_global_write()) == MTC_SUCCESS)
                  {
@@ -107,7 +108,7 @@ index af819a0..2ebac4b 100755
                  }
  
                  if (status != MTC_SUCCESS && print_status != PSTATUS_ERROR)
-@@ -660,7 +692,9 @@ readsf()
+@@ -661,7 +693,9 @@ readsf()
          {
              if ((iostatus.global_section = FIST_global_read()) == MTC_SUCCESS)
              {
@@ -118,7 +119,7 @@ index af819a0..2ebac4b 100755
              }
          }
  
-@@ -670,8 +704,10 @@ readsf()
+@@ -671,8 +705,10 @@ readsf()
              {
                  if ((iostatus.host_section[host_index] = FIST_hostspecific_read()) == MTC_SUCCESS)
                  {
@@ -130,7 +131,7 @@ index af819a0..2ebac4b 100755
                  }
  
                  if (iostatus.host_section[host_index] == MTC_SUCCESS)
-@@ -978,7 +1014,9 @@ write_hostspecific()
+@@ -979,7 +1015,9 @@ write_hostspecific()
  
      if ((status = FIST_hostspecific_write()) == MTC_SUCCESS)
      {
@@ -142,10 +143,10 @@ index af819a0..2ebac4b 100755
  
      if (status != MTC_SUCCESS)
 diff --git a/lib/statefileio.c b/lib/statefileio.c
-index a3322bc..38c2d34 100755
+index 1b0593e..63d0925 100755
 --- a/lib/statefileio.c
 +++ b/lib/statefileio.c
-@@ -87,6 +87,9 @@
+@@ -88,6 +88,9 @@
  
  extern STATE_FILE StateFile;
  
@@ -155,7 +156,7 @@ index a3322bc..38c2d34 100755
  //
  //
  //  F U N C T I O N   P R O T O T Y P E S
-@@ -106,11 +109,41 @@ sf_FIST_delay_on_write();
+@@ -107,11 +110,41 @@ sf_FIST_delay_on_write();
  //
  
  
@@ -198,6 +199,3 @@ index a3322bc..38c2d34 100755
  }
  
  extern int
--- 
-2.25.1
-
