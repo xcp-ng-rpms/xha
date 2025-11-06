@@ -1,12 +1,12 @@
-%global package_speccommit 12ac3bfdaad06b8db83feba5ef345b5b252ade91
-%global package_srccommit v25.1.0
+%global package_speccommit bd08c936e12a5cb336fa27261b3aef14a238b841
+%global package_srccommit v25.2.0
 Summary: xha - XenServer proprietary HA daemon
 Name:    xha
-Version: 25.1.0
+Version: 25.2.0
 Release: 1%{?xsrel}%{?dist}
 License: GPLv2
 URL:     https://github.com/xenserver/xha
-Source0: xha-25.1.0.tar.gz
+Source0: xha-25.2.0.tar.gz
 
 BuildRequires: libxml2-devel
 BuildRequires: xen-devel
@@ -53,6 +53,12 @@ DESTDIR=$RPM_BUILD_ROOT make install
 %{?_cov_results_package}
 
 %changelog
+* Tue Sep 02 2025 Gabriel Buica <danutgabriel.buica@cloud.com> - 25.2.0-1
+- CP-53906: Print host index in query_liveset
+- fix xha logging typos in sm.c
+- ci: Add missing package
+- CA-404344: update service to systemd command
+
 * Thu Mar 06 2025 Gerald Elder-Vass <gerald.elder-vass@cloud.com> - 25.1.0-1
 - CA-407106: Fix various static analyzer warnings
 - CA-404658: Separate heartbeat send and receive threads
