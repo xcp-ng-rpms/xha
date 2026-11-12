@@ -3,7 +3,7 @@
 Summary: xha - XenServer proprietary HA daemon
 Name:    xha
 Version: 25.2.0
-Release: 1%{?xsrel}.1%{?dist}
+Release: 1%{?xsrel}.2%{?dist}
 License: GPLv2
 URL:     https://github.com/xenserver/xha
 Source0: xha-25.2.0.tar.gz
@@ -18,6 +18,7 @@ Requires: portreserve
 # XCP-ng patches
 Patch1001: 0001-Support-DRBD-path.patch
 Patch1002: 0002-Support-NBD-path-1.patch
+Patch1003: 0003-Fix-unknown-index-value-which-overflows-hbvar.sa_to-.patch
 
 %description
 This package contains the HA heartbeating daemon used for XenServer's HA feature
@@ -58,6 +59,9 @@ DESTDIR=$RPM_BUILD_ROOT make install
 %{?_cov_results_package}
 
 %changelog
+* Mon Oct 19 2026 Erwan Croze <erwan.croze@vates.tech> - 25.2.0-1.2
+- Fix a potential memory crash access during activation step
+
 * Thu Nov 06 2025 Gael Duperrey <gduperrey@vates.tech> - 25.2.0-1.1
 - Update to 25.2.0-1
 - *** Upstream changelog ***
